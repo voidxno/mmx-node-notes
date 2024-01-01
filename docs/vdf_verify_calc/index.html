@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<!--*
+    * File: index.html
+    *
+    * Author: voidxno
+    * Created: 02 Jan 2024
+    * Source: https://github.com/voidxno/mmx-node-notes
+    *
+    * VDF Verify Calculator
+    *
+    * LICENSE: Unlicense
+    * For more information, please refer to <https://unlicense.org>
+    *
+    *-->
+
+<head>
+<title>VDF Verify Calculator (mmx-node-notes)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="robots" content="noindex,follow" />
+<link rel="stylesheet" type="text/css" media="all" href="style.css?revision=1" />
+</head>
+
+<body>
+
+  <h2>VDF Verify Calculator (from: <a href="https://github.com/voidxno/mmx-node-notes">mmx-node-notes</a>)</h2>
+
+  <p>Simple calculator to estimate max timelord speed an mmx-node config can handle.</p>
+
+  <p>Read 3 values/properties from mmx-node:</p>
+  <ul>
+    <li><strong>Network Speed:</strong> Value shown in WebGUI / NODE section, as <strong>VDF Speed</strong>.</li>
+    <li>Look at WebGUI / NODE / LOG / TERMINAL entries:</li>
+    <li><code>Verified VDF for height x, delta = x.x sec,</code> <strong><code>took x.x sec</code></strong> <strong><code>(with reward)</code></strong></li>
+    <li><strong>Verify VDF Time:</strong> Value 'took x.x sec' in line above.</li>
+    <li><strong>With Reward:</strong> If '(with reward)' in line above, check box. If not, uncheck.</li>
+  </ul>
+
+  <p>
+    <em>NOTE: Network speed should be stable, WebGUI / NODE / VDF SPEED.</em><br>
+    <em>NOTE: Verified VDF delta in line above should be at ~10 sec (+/- 0.5).</em>
+  </p>
+
+  <h2>Input</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th align="left">Name</th>
+        <th align="left">Value</th>
+        <th align="left">Unit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><label for="networkspeed">Network Speed:</label></td>
+        <td><input type="text" size="15" id="networkspeed" name="networkspeed" onkeyup="calcvdf()"></td>
+        <td>x.x MH/s</td>
+      </tr>
+      <tr>
+        <td><label for="verifytime">Verify VDF Time:</label></td>
+        <td><input type="text" size="15" id="verifytime" name="verifytime" onkeyup="calcvdf()"></td>
+        <td>x.x sec</td>
+      </tr>
+      <tr>
+        <td>With Reward:</td>
+        <td><input type="checkbox" id="withreward" name="withreward" checked onchange="calcvdf()"><label for="withreward"> Verified with reward</label></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Result</h2>
+
+  <p>Max timelord speed mmx-node config above can handle (verify less than ~5 sec):</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th align="left">3x VDF streams</th>
+        <th align="left">2x VDF streams</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span id="max3xvdfspeed"></span> MH/s</td>
+        <td><span id="max2xvdfspeed"></span> MH/s</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><a href="https://github.com/voidxno/mmx-node-notes" id="urlcalc">https://github.com/voidxno/mmx-node-notes</a></p>
+
+  <p><em>NOTE: Is an ok estimate. As long as stable mmx-node config, only verifying on GPU/iGPU or CPU.</em></p>
+
+<script type="text/javascript" src="func.js?revision=1"></script>
+
+</body>
+
+</html>
+
+<!-- <eof> -->
