@@ -9,6 +9,6 @@ A few notes/tools I made related to the [MMX blockchain](https://github.com/madM
 Tools:
 - [VDF Verify Calculator](https://voidxno.github.io/mmx-node-notes/vdf_verify_calc)
 
-Notes are placed in [Wiki](https://github.com/voidxno/mmx-node-notes/wiki) of this repository, tools on GitHub Pages (github.io).
+Notes are placed in Wiki of this repository, tools on GitHub Pages (github.io).
 
 <!-- eof -->
