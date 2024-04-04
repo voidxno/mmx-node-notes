@@ -2,6 +2,7 @@
 
 A few notes/tools I made related to the [MMX blockchain](https://github.com/madMAx43v3r/mmx-node) project. Mostly about TimeLord logic, VDF create and verify.
 
+- [New plot format testnet11](https://github.com/voidxno/mmx-node-notes/wiki/New-plot-format-testnet11)
 - [Optimizations for TimeLord](https://github.com/voidxno/mmx-node-notes/wiki/Optimizations-for-TimeLord)
 - [TimeLord Predictions](https://github.com/voidxno/mmx-node-notes/wiki/TimeLord-Predictions)
 - [Tunings for VDF verify](https://github.com/voidxno/mmx-node-notes/wiki/Tunings-for-VDF-verify)
