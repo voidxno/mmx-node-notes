@@ -13,4 +13,4 @@ Tools:
 
 Notes are placed in Wiki of this repository, tools on GitHub Pages (github.io).
 
-_<sup>[MMX music](https://voidxno.github.io/mmx-node-notes/mmx_music) (no blockchain should be without) &#x1F3A7;</sup>_
+_<sup>[MMX music](https://voidxno.github.io/mmx-node-notes/mmx_music) (no blockchain without) &#x1F3A7;</sup>_
