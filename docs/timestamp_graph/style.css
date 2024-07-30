@@ -1,0 +1,215 @@
+/*
+ * File: style.js
+ *
+ * Author: voidxno
+ * Created: 21 Jul 2024
+ * Source: https://github.com/voidxno/mmx-node-notes
+ *
+ * Timestamp graph, internal
+ *
+ * LICENSE: Unlicense
+ * For more information, please refer to <https://unlicense.org>
+ *
+ */
+
+body{
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0 32px 32px 32px;
+  }
+
+h2{
+  border-bottom: 1px solid var(--color-border-alt1);
+  font-size: 1.5em;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  margin-top: 24px;
+  padding-bottom: .3em;
+  }
+
+strong{
+  font-weight: 600;
+  }
+
+em{
+  font-style: italic;
+  }
+
+code{
+  background-color: var(--color-monotext-back);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+  font-size: 85%;
+  margin: 0;
+  padding: 0.2em 0.4em;
+  white-space: break-spaces;
+  }
+
+a:link, a:visited{
+  color: var(--color-url);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+  }
+
+a:active, a:hover{
+  color: var(--color-url);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+  }
+
+h2 a:link, .widget-area a:visited{
+  text-decoration: none;
+  }
+
+h2 a:active, .widget-area a:hover{
+  text-decoration: none;
+  }
+
+ul{
+  padding-inline-start: 32px;
+  }
+
+li{
+  margin-top: .25em;
+  }
+
+table{
+  border-collapse: collapse;
+  border-color: var(--color-border-darker);
+  border-spacing: 0;
+  display: block;
+  margin-bottom: 16px;
+  margin-top: 0;
+  max-width: 100%;
+  overflow: auto;
+  text-indent: initial;
+  width: 100%;
+  width: max-content;
+  }
+
+thead{
+  border-color: inherit;
+  display: table-header-group;
+  vertical-align: middle;
+  }
+
+tr{
+  background-color: var(--color-row-alt1);
+  border-top: 1px solid var(--color-border-alt1);
+  }
+
+tr:nth-child(2n) {
+  background-color: var(--color-row-alt2);
+  }
+
+th{
+  border: 1px solid var(--color-border-alt2);
+  display: table-cell;
+  font-weight: 600;
+  padding: 6px 13px;
+  vertical-align: inherit;
+  }
+
+tbody{
+  border-color: inherit;
+  display: table-row-group;
+  vertical-align: middle;
+  }
+
+td{
+  border: 1px solid var(--color-border-alt2);
+  display: table-cell;
+  padding: 6px 13px;
+  vertical-align: inherit;
+  }
+
+input{
+  background-color: var(--color-input-back);
+  border: 1px solid var(--color-border-darker);
+  color: var(--color-text);
+  font-family: "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Segoe UI Emoji";
+  font-size: 15px;
+  line-height: 1.25;
+  margin: 0;
+  text-indent: 4px;
+  }
+
+/* styles for elements (custom for this page) */
+
+.parametertable{
+  padding-top: 8px;
+  }
+
+.tc1slider, .tc2slider, .nr2ddlslider {
+  width: 150px;
+  vertical-align: middle;
+  }
+
+.tc1value, .tc2value, .nr2ddlvalue{
+  width: 45px;
+  }
+
+.methodgraphtext{
+  padding-left: 22px;
+  margin-block-start: 6px;
+  line-height: 28px;
+  }
+
+.codelogictext{
+  font-size: 13.6px;
+  padding: 8px;
+  margin-left: 22px;
+  margin-block-start: 12px;
+
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+
+  background-color: var(--color-code-back);
+  }
+
+@media (prefers-color-scheme: dark){
+canvas#timegraph{
+  filter: invert(1) hue-rotate(180deg);
+  }
+}
+
+/* light dark color scheme colors */
+
+:root{
+  --color-background: #ffffff;
+  --color-border-alt1: #d8dee4;
+  --color-border-alt2: #d0d7de;
+  --color-border-darker: #808080;
+  --color-input-back: #00000000;
+  --color-monotext-back: #afb8c133;
+  --color-row-alt1: #ffffff;
+  --color-row-alt2: #f6f8fa;
+  --color-code-back: #f6f8fa;
+  --color-text: #1f2328;
+  --color-url: #0969da;
+  }
+
+@media (prefers-color-scheme: dark){
+:root{
+  --color-background: #0d1117;
+  --color-border-alt1: #21262d;
+  --color-border-alt2: #30363d;
+  --color-border-darker: #808080;
+  --color-input-back: #00000000;
+  --color-monotext-back: #6e768166;
+  --color-row-alt1: #0d1117;
+  --color-row-alt2: #161b22;
+  --color-code-back: #161b22;
+  --color-text: #e6edf3;
+  --color-url: #2f81f7;
+  }
+}
+
+/* <eof> */

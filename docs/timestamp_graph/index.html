@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<!--*
+    * File: index.html
+    *
+    * Author: voidxno
+    * Created: 21 Jul 2024
+    * Source: https://github.com/voidxno/mmx-node-notes
+    *
+    * Timestamp graph, internal
+    *
+    * LICENSE: Unlicense
+    * For more information, please refer to <https://unlicense.org>
+    *
+    *-->
+
+<head>
+<title>Timestamp graph, internal (mmx-node-notes)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="robots" content="noindex,follow" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" type="text/css" media="all" href="style.css?revision=1" />
+</head>
+
+<body>
+
+  <h2>Timestamp graph, internal (from: <a href="https://github.com/voidxno/mmx-node-notes">mmx-node-notes</a>)</h2>
+    <canvas id="timegraph"></canvas>
+
+  <h2>Test case</h2>
+    <form>
+      <input type="radio" id="case02" name="testcase" value="2"> <label for="case02"><strong>TC02:</strong> Stop chain, height 10</label><br>
+      <input type="radio" id="case01" name="testcase" value="1"> <label for="case01"><strong>TC01:</strong> Wrong TZ/UTC (±1h), height 10</label><br>
+      <input type="radio" id="case00" name="testcase" value="0"> <label for="case00"><strong>TC00:</strong> Normal</label><br>
+    </form>
+
+  <h2>Parameters</h2>
+    <form>
+      <table class="parametertable">
+        <thead>
+          <tr>
+            <th align="left">Area</th>
+            <th align="left">Element</th>
+            <th align="left"></th>
+            <th align="left">Value</th>
+            <th align="left">Unit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TC02</d>
+            <td>Stop time</td>
+            <td><input type="range" id="tc02slider" class="tc2slider"></td>
+            <td><input type="text" id="tc02value" class="tc2value"></td>
+            <td>sec</td>
+          </tr>
+          <tr>
+            <td>TC01</d>
+            <td>Blocks wrong in row</td>
+            <td><input type="range" id="tc01slider" class="tc1slider"></td>
+            <td><input type="text" id="tc01value" class="tc1value"></td>
+            <td>blocks</td>
+          </tr>
+          <tr>
+            <td>Nr2</d>
+            <td>Delta delta clamp limit</td>
+            <td><input type="range" id="nr2ddlslider" class="nr2ddlslider"></td>
+            <td><input type="text" id="nr2ddlvalue" class="nr2ddlvalue"></td>
+            <td>sec</td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+
+  <h2>Context</h2>
+    <p>Unix time stamp (planned). Experiment with extra clamp on delta. Rough timestamp simulation with granularity of 1 sec.</p>
+
+  <h2>Graphs</h2>
+    <strong><span style="color:#ff6384;">&#9632;</span> Nr2 (ddc)</strong>
+      <p class="methodgraphtext">
+        Method Nr2 of extra clamp logic on top of base 'None'<br>
+        Limit new delta ±1 sec from previous delta<br>
+        &#x2714; Still get to 5/20 sec delta, if really the case and needed<br>
+        &#x2714; Odd 5/20 sec delta outliers, TZ/UTC, limited to ±1 sec<br>
+        &#x2714; Added logic is simple<br>
+        &#x26A0; Oscillation effect when getting back to 0<br>
+        &#x26A0; Chain needs added variable for previous delta
+      </p>
+
+    <strong><span style="color:#36a2eb;">&#9632;</span> Nr1 (idx)</strong>
+      <p class="methodgraphtext">
+        Method Nr1 of extra limiter logic on top of base 'None'<br>
+        Added indicator for 'timestamp really out of sync', &lt;5 &gt;20 sec<br>
+        Function like a 'shock absorber' for the 5-20 sec delta outliers<br>
+        Min/max for indicator ±12 blocks, ±6 trigger point<br>
+        I.e., wrong delta outliers need 6 in a row to have an effect<br>
+        &#x2714; Still get to 5/20 sec delta, if really the case and needed<br>
+        &#x2714; Up to 6x 5/20 sec delta outliers, TZ/UTC, eliminated<br>
+        &#x26A0; Added logic is simple'ish, but not 'pretty'<br>
+        &#x26A0; If within 5-20 sec delta, still allowed to move timestamp<br>
+        &#x26A0; Delay of 6x blocks to move timestamp for a stopped chain<br>
+        &#x26A0; Chain needs added variable for deviation index indicator<br>
+      </p>
+
+    <strong><span style="color:#97999d;">&#9632;</span> None</strong>
+      <p class="methodgraphtext">
+        Base clamp at 5-20 sec delta timestamp between each block<br>
+        &#x2714; Base logic is simple<br>
+        &#x26A0; Odd 5/20 sec delta outliers, TZ/UTC
+      </p>
+
+  <h2>Code Logic</h2>
+    <strong><span style="color:#ff6384;">&#9632;</span> Nr2 (ddc)</strong>
+      <pre class="codelogictext">delta_sec = nodetime - prevblock_timestamp
+if(delta_sec &gt; 20) delta_sec = 20
+if(delta_sec &lt; 5) delta_sec = 5
+if(delta_sec &lt; prevblock_delta_sec - deltalimit) delta_sec = prevblock_delta_sec - deltalimit
+if(delta_sec &gt; prevblock_delta_sec + deltalimit) delta_sec = prevblock_delta_sec + deltalimit
+block_timestamp = prevblock_timestamp + delta_sec
+block_delta_sec = delta_sec</pre>
+
+    <strong><span style="color:#36a2eb;">&#9632;</span> Nr1 (idx)</strong>
+      <pre class="codelogictext">delta_sec = nodetime - prevblock_timestamp
+devindex = prevblock_devindex
+if(delta_sec &gt;= 5 && delta_sec &lt;= 20)
+  if(devindex &lt; 0) ++devindex // ok time 5-20sec, get non-0 devindex back to 0
+  if(devindex &gt; 0) --devindex // ok time 5-20sec, get non-0 devindex back to 0
+if(delta_sec &gt; 20)
+  ++devindex
+  if(devindex &gt;  12) devindex = 12
+  if(devindex &lt;   6) delta_sec = 10 // fallback to blocktime, bad clock on node
+  if(devindex &gt;=  6) delta_sec = 20 // timestamp really out of sync, reign it in
+if(delta_sec &lt; 5)
+  --devindex
+  if(devindex &lt; -12) devindex = -12
+  if(devindex &gt;  -6) delta_sec = 10 // fallback to blocktime, bad clock on node
+  if(devindex &lt;= -6) delta_sec = 5  // timestamp really out of sync, reign it in
+block_timestamp = prevblock_timestamp + delta_sec
+block_devindex = devindex</pre>
+
+    <strong><span style="color:#97999d;">&#9632;</span> None</strong>
+      <pre class="codelogictext">delta_sec = nodetime - prevblock_timestamp
+if(delta_sec &gt; 20) delta_sec = 20
+if(delta_sec &lt; 5) delta_sec = 5
+block_timestamp = prevblock_timestamp + delta_sec</pre>
+
+  <p><a href="https://github.com/voidxno/mmx-node-notes" id="urlgraph">https://github.com/voidxno/mmx-node-notes</a></p>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript" src="func.js?revision=1"></script>
+
+</body>
+
+</html>
+
+<!-- <eof> -->
