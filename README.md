@@ -11,6 +11,9 @@ A few notes/tools I made related to the [MMX blockchain](https://github.com/madM
 Tools:
 - &#x1F522; [VDF Verify Calculator](https://voidxno.github.io/mmx-node-notes/vdf_verify_calc)
 
+Internal:
+- &#x1F4C8; [Timestamp graph](https://voidxno.github.io/mmx-node-notes/timestamp_graph) (ruleset prototyping)
+
 Notes are placed in Wiki of this repository, tools on GitHub Pages (github.io).
 
 _<sup>[MMX music](https://voidxno.github.io/mmx-node-notes/mmx_music) (no blockchain without) &#x1F3A7;</sup>_
