@@ -156,7 +156,7 @@ function updateurl()
    && gptoggle_nr1idx == 0
    && gptoggle_none == 1))
    urlgraph = urlgraph
-     + "&ir=" + gp02inrow
+     + "?ir=" + gp02inrow
      + "&st=" + gp01stoptime
      + "&dci=" + nr2ddlincsec
      + "&dcd=" + nr2ddldecsec
