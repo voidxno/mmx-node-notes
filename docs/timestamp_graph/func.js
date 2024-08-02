@@ -17,17 +17,20 @@ const numblocks = 80; //-- number of blocks to calc/show on x-axis
 const timeaxis = 50;  //-- number of sec +/- to show on y-axis
 const blocktime = 10; //-- locked blocktime used (10 sec)
 
-var tcactive = 1; //-- current testcase active, range 0-2
+var gptoggle_nr2ddc = 1; //-- graph, toggle on/off graph 'Nr2'
+var gptoggle_nr1idx = 0; //-- graph, toggle on/off graph 'Nr1'
+var gptoggle_none = 1;   //-- graph, toggle on/off graph 'None'
 
-var tc02stoptime = 50;    //-- testcase02, number of seconds chain was stopped
-const tc02minstop = -200; //-- testcase02, min value for stoptime
-const tc02maxstop = 200;  //-- testcase02, max value for stoptime
+var gp02inrow = 1;        //-- graphparam02, row of blocks with wrong time
+const gp02mininrow = -10; //-- graphparam02, min value for inrow
+const gp02maxinrow = 10;  //-- graphparam02, max value for inrow
 
-var tc01inrow = 1;        //-- testcase01, row of blocks with wrong time
-const tc01mininrow = -10; //-- testcase01, min value for inrow
-const tc01maxinrow = 10;  //-- testcase01, max value for inrow
+var gp01stoptime = 0;     //-- graphparam01, number of seconds to stop chain
+const gp01minstop = -200; //-- graphparam01, min value for stoptime
+const gp01maxstop = 200;  //-- graphparam01, max value for stoptime
 
-var nr2ddlsec = 1;    //-- Nr2, max new delta delta limit
+var nr2ddlincsec = 1; //-- Nr2, max new delta delta limit (inc)
+var nr2ddldecsec = 1; //-- Nr2, max new delta delta limit (dec)
 var nr2ddlsecmin = 1; //-- Nr2, max new delta delta limit, min
 var nr2ddlsecmax = 5; //-- Nr2, max new delta delta limit, max
 
@@ -36,9 +39,9 @@ var arr_vdfblockdelta = []; //-- calc, vdf delta each block, in sec
 var arr_nodetime = [];      //-- calc, unix time node think it is on each block
 var arr_realtime = [];      //-- calc, absolute real time on each block
 
-var arr_graph_none = [];   //-- graph, values for 'None' (no extra delta clamp)
-var arr_graph_nr1idx = []; //-- graph, values for 'Nr1' (idx, index for really out of sync)
 var arr_graph_nr2ddc = []; //-- graph, values for 'Nr2' (ddc, delta delta clamp)
+var arr_graph_nr1idx = []; //-- graph, values for 'Nr1' (idx, index for really out of sync)
+var arr_graph_none = [];   //-- graph, values for 'None' (no extra delta clamp)
 
 var tsgraph; //-- object created for graph, Chart.js
 
@@ -52,8 +55,6 @@ window.onload = function()
  calcgraph();
 
  addevents();
-
- updateurl();
 };
 
 //-- init parameter values
@@ -62,80 +63,106 @@ function initval()
  const queryString = window.location.search;
  const urlParams = new URLSearchParams(queryString);
 
- const url_tc = urlParams.get("tc");
- if(url_tc === "2") tcactive = 2;
- if(url_tc === "1") tcactive = 1;
- if(url_tc === "0") tcactive = 0;
+ const url_ir = urlParams.get("ir");
+ if(url_ir && !(Number(url_ir) !== Number(url_ir))) gp02inrow = Math.round(Number(url_ir));
+ if(gp02inrow < gp02mininrow) gp02inrow = gp02mininrow;
+ if(gp02inrow > gp02maxinrow) gp02inrow = gp02maxinrow;
 
  const url_st = urlParams.get("st");
- if(url_st && !(Number(url_st) !== Number(url_st))) tc02stoptime = Math.round(Number(url_st));
- if(tc02stoptime < tc02minstop) tc02stoptime = tc02minstop;
- if(tc02stoptime > tc02maxstop) tc02stoptime = tc02maxstop;
+ if(url_st && !(Number(url_st) !== Number(url_st))) gp01stoptime = Math.round(Number(url_st));
+ if(gp01stoptime < gp01minstop) gp01stoptime = gp01minstop;
+ if(gp01stoptime > gp01maxstop) gp01stoptime = gp01maxstop;
 
- const url_ir = urlParams.get("ir");
- if(url_ir && !(Number(url_ir) !== Number(url_ir))) tc01inrow = Math.round(Number(url_ir));
- if(tc01inrow < tc01mininrow) tc01inrow = tc01mininrow;
- if(tc01inrow > tc01maxinrow) tc01inrow = tc01maxinrow;
+ const url_dci = urlParams.get("dci");
+ if(url_dci && !(Number(url_dci) !== Number(url_dci))) nr2ddlincsec = Math.round(Number(url_dci));
+ if(nr2ddlincsec < nr2ddlsecmin) nr2ddlincsec = nr2ddlsecmin;
+ if(nr2ddlincsec > nr2ddlsecmax) nr2ddlincsec = nr2ddlsecmax;
 
- const url_dc = urlParams.get("dc");
- if(url_dc && !(Number(url_dc) !== Number(url_dc))) nr2ddlsec = Math.round(Number(url_dc));
- if(nr2ddlsec < nr2ddlsecmin) nr2ddlsec = nr2ddlsecmin;
- if(nr2ddlsec > nr2ddlsecmax) nr2ddlsec = nr2ddlsecmax;
+ const url_dcd = urlParams.get("dcd");
+ if(url_dcd && !(Number(url_dcd) !== Number(url_dcd))) nr2ddldecsec = Math.round(Number(url_dcd));
+ if(nr2ddldecsec < nr2ddlsecmin) nr2ddldecsec = nr2ddlsecmin;
+ if(nr2ddldecsec > nr2ddlsecmax) nr2ddldecsec = nr2ddlsecmax;
+
+ const url_t2 = urlParams.get("t2");
+ if(url_t2 && !(Number(url_t2) !== Number(url_t2))) gptoggle_nr2ddc = Math.round(Number(url_t2));
+ gptoggle_nr2ddc = (gptoggle_nr2ddc) ? 1 : 0;
+
+ const url_t1 = urlParams.get("t1");
+ if(url_t1 && !(Number(url_t1) !== Number(url_t1))) gptoggle_nr1idx = Math.round(Number(url_t1));
+ gptoggle_nr1idx = (gptoggle_nr1idx) ? 1 : 0;
+
+ const url_t0 = urlParams.get("t0");
+ if(url_t0 && !(Number(url_t0) !== Number(url_t0))) gptoggle_none = Math.round(Number(url_t0));
+ gptoggle_none = (gptoggle_none) ? 1 : 0;
 }
 
 //-- init html attributes
 function inithtml()
 {
- switch(tcactive){
-   case 2: document.getElementById("case02").checked = true; break;
-   case 1: document.getElementById("case01").checked = true; break;
-   case 0: document.getElementById("case00").checked = true; break;
-   default: document.getElementById("case02").checked = true; break;
-   }
+ document.getElementById("gp01slider").min = gp01minstop;
+ document.getElementById("gp01slider").max = gp01maxstop;
+ document.getElementById("gp01slider").value = gp01stoptime;
+ document.getElementById("gp01slider").step = 1;
+ document.getElementById("gp01value").value = gp01stoptime;
 
- document.getElementById("tc02slider").min = tc02minstop;
- document.getElementById("tc02slider").max = tc02maxstop;
- document.getElementById("tc02slider").value = tc02stoptime;
- document.getElementById("tc02slider").step = 1;
- document.getElementById("tc02value").value = tc02stoptime;
+ document.getElementById("gp02slider").min = gp02mininrow;
+ document.getElementById("gp02slider").max = gp02maxinrow;
+ document.getElementById("gp02slider").value = gp02inrow;
+ document.getElementById("gp02slider").step = 1;
+ document.getElementById("gp02value").value = gp02inrow;
 
- document.getElementById("tc01slider").min = tc01mininrow;
- document.getElementById("tc01slider").max = tc01maxinrow;
- document.getElementById("tc01slider").value = tc01inrow;
- document.getElementById("tc01slider").step = 1;
- document.getElementById("tc01value").value = tc01inrow;
+ document.getElementById("nr2incslider").min = nr2ddlsecmin;
+ document.getElementById("nr2incslider").max = nr2ddlsecmax;
+ document.getElementById("nr2incslider").value = nr2ddlincsec;
+ document.getElementById("nr2incslider").step = 1;
+ document.getElementById("nr2incvalue").value = nr2ddlincsec;
 
- document.getElementById("nr2ddlslider").min = nr2ddlsecmin;
- document.getElementById("nr2ddlslider").max = nr2ddlsecmax;
- document.getElementById("nr2ddlslider").value = nr2ddlsec;
- document.getElementById("nr2ddlslider").step = 1;
- document.getElementById("nr2ddlvalue").value = nr2ddlsec;
+ document.getElementById("nr2decslider").min = nr2ddlsecmin;
+ document.getElementById("nr2decslider").max = nr2ddlsecmax;
+ document.getElementById("nr2decslider").value = nr2ddldecsec;
+ document.getElementById("nr2decslider").step = 1;
+ document.getElementById("nr2decvalue").value = nr2ddldecsec;
 }
 
 //-- add event listeners to html
 function addevents()
 {
- document.getElementById("case02").addEventListener("click",eventtestcase);
- document.getElementById("case01").addEventListener("click",eventtestcase);
- document.getElementById("case00").addEventListener("click",eventtestcase);
+ document.getElementById("gp01slider").addEventListener("input",eventgp01slider);
+ document.getElementById("gp01value").addEventListener("keyup",eventgp01value);
 
- document.getElementById("tc02slider").addEventListener("input",eventtc02slider);
- document.getElementById("tc02value").addEventListener("keyup",eventtc02value);
+ document.getElementById("gp02slider").addEventListener("input",eventgp02slider);
+ document.getElementById("gp02value").addEventListener("keyup",eventgp02value);
 
- document.getElementById("tc01slider").addEventListener("input",eventtc01slider);
- document.getElementById("tc01value").addEventListener("keyup",eventtc01value);
+ document.getElementById("nr2incslider").addEventListener("input",eventnr2incslider);
+ document.getElementById("nr2incvalue").addEventListener("input",eventnr2incvalue);
 
- document.getElementById("nr2ddlslider").addEventListener("input",eventnr2ddlslider);
- document.getElementById("nr2ddlvalue").addEventListener("input",eventnr2ddlvalue);
+ document.getElementById("nr2decslider").addEventListener("input",eventnr2decslider);
+ document.getElementById("nr2decvalue").addEventListener("input",eventnr2decvalue);
 }
 
 //-- update html url, bottom of page
 function updateurl()
 {
- var urlgraph = window.location.href.split("?")[0];
+ gptoggle_nr2ddc = (tsgraph.getDatasetMeta(0).hidden ) ? 0 : 1;
+ gptoggle_nr1idx = (tsgraph.getDatasetMeta(1).hidden ) ? 0 : 1;
+ gptoggle_none   = (tsgraph.getDatasetMeta(2).hidden ) ? 0 : 1;
 
- if(!(tcactive == 1 && tc02stoptime == 50 && tc01inrow == 1 && nr2ddlsec == 1))
-   urlgraph = urlgraph + "?tc=" + tcactive + "&st=" + tc02stoptime + "&ir=" + tc01inrow + "&dc=" + nr2ddlsec;
+ var urlgraph = window.location.href.split("?")[0];
+ if(!(gp02inrow == 1
+   && gp01stoptime == 0
+   && nr2ddlincsec == 1
+   && nr2ddldecsec == 1
+   && gptoggle_nr2ddc == 1
+   && gptoggle_nr1idx == 0
+   && gptoggle_none == 1))
+   urlgraph = urlgraph
+     + "&ir=" + gp02inrow
+     + "&st=" + gp01stoptime
+     + "&dci=" + nr2ddlincsec
+     + "&dcd=" + nr2ddldecsec
+     + "&t2=" + gptoggle_nr2ddc
+     + "&t1=" + gptoggle_nr1idx
+     + "&t0=" + gptoggle_none;
 
  document.getElementById("urlgraph").href = urlgraph;
  document.getElementById("urlgraph").innerHTML = urlgraph;
@@ -146,18 +173,14 @@ function calcgraph()
 {
  initcalc();
 
- switch(tcactive){
-   case 2: testcase02(); break;
-   case 1: testcase01(); break;
-   case 0: testcase00(); break;
-   default: testcase00(); break;
-   }
+ calcseed();
 
  calcnone();
  calcnr1idx();
  calcnr2ddc();
 
  tsgraph.update();
+ updateurl();
 }
 
 //-- init calc arrays
@@ -176,39 +199,59 @@ function initcalc()
  for(let i = 0; i <= numblocks; ++i) arr_nodetime[i] = arr_realtime[i];
 }
 
-//-- testcase02, seed case values, Stop chain (sec), height 10
-function testcase02()
+//-- graph params, seed values, depending on parameters
+function calcseed()
 {
- arr_realtime[10] = arr_realtime[9] + tc02stoptime;
- for(let i = 11; i <= numblocks; ++i) arr_realtime[i] = arr_realtime[i - 1] + arr_vdfblockdelta[i];
+ //-- gp02, seed values, stop chain (sec), height 10
+ for(let i = 10; i <= numblocks; ++i) arr_realtime[i] += gp01stoptime;
  for(let i = 10; i <= numblocks; ++i) arr_nodetime[i] = arr_realtime[i];
+
+ //-- gp01, seed values, wrong TZ/UTC (+/-1h), height 10
+ if(gp02inrow > 0) for(let i = 10; i < 10 + (+gp02inrow); ++i) arr_nodetime[i] += 3600;
+ if(gp02inrow < 0) for(let i = 10; i < 10 + (-gp02inrow); ++i) arr_nodetime[i] -= 3600;
 }
 
-//-- testcase01, seed case values, Wrong TZ/UTC (+/-1h), height 10
-function testcase01()
+//-- Nr2 (ddc), calc graph values, time delta vs real time for each block
+function calcnr2ddc()
 {
- if(tc01inrow > 0) for(let i = 10; i < 10 + (+tc01inrow); ++i) arr_nodetime[i] += 3600;
- if(tc01inrow < 0) for(let i = 10; i < 10 + (-tc01inrow); ++i) arr_nodetime[i] -= 3600;
-}
-
-//-- testcase00, seed case values, Normal, current logic
-function testcase00()
-{
-}
-
-//-- None, calc graph values, time delta vs real time for each block
-function calcnone()
-{
- var arr_timestamp_none = []; arr_timestamp_none[0] = arr_realtime[0];
+ var arr_timestamp_nr2ddc = []; arr_timestamp_nr2ddc[0] = arr_realtime[0];
+ var arr_timestamp_nr2ddc_delta = []; arr_timestamp_nr2ddc_delta[0] = blocktime;
 
  for(let i = 1; i <= numblocks; ++i){
-   var delta_sec = arr_nodetime[i] - arr_timestamp_none[i - 1];
+   var delta_sec = arr_nodetime[i] - arr_timestamp_nr2ddc[i - 1];
    if(delta_sec > 20) delta_sec = 20;
    if(delta_sec < 5) delta_sec = 5;
-   arr_timestamp_none[i] = arr_timestamp_none[i - 1] + delta_sec;
+
+   const prev_delta_sec = arr_timestamp_nr2ddc_delta[i - 1];
+
+   if(nr2ddlincsec == nr2ddldecsec){ //-- identical up/down delta delta limit
+     const deltalimit = nr2ddlincsec;
+     if(delta_sec < prev_delta_sec - deltalimit) delta_sec = prev_delta_sec - deltalimit;
+     if(delta_sec > prev_delta_sec + deltalimit) delta_sec = prev_delta_sec + deltalimit;
+     }
+
+   if(nr2ddlincsec != nr2ddldecsec){ //-- diff up/down delta delta limit against 10 sec static blocktime
+     const deltalimit_inc = nr2ddlincsec;
+     const deltalimit_dec = nr2ddldecsec;
+     if(prev_delta_sec > blocktime){
+       if(delta_sec > prev_delta_sec + deltalimit_inc) delta_sec = prev_delta_sec + deltalimit_inc;
+       if(delta_sec < prev_delta_sec - deltalimit_dec) delta_sec = prev_delta_sec - deltalimit_dec;
+       }
+     if(prev_delta_sec < blocktime){
+       if(delta_sec < prev_delta_sec - deltalimit_inc) delta_sec = prev_delta_sec - deltalimit_inc;
+       if(delta_sec > prev_delta_sec + deltalimit_dec) delta_sec = prev_delta_sec + deltalimit_dec;
+       }
+     if(prev_delta_sec == blocktime){
+       if(delta_sec < prev_delta_sec - deltalimit_inc) delta_sec = prev_delta_sec - deltalimit_inc;
+       if(delta_sec > prev_delta_sec + deltalimit_inc) delta_sec = prev_delta_sec + deltalimit_inc;
+       }
+     }
+
+   arr_timestamp_nr2ddc_delta[i] = delta_sec;
+   arr_timestamp_nr2ddc[i] = arr_timestamp_nr2ddc[i - 1] + delta_sec;
    }
 
- for(let i = 0; i <= numblocks; ++i){ arr_graph_none[i] = arr_timestamp_none[i] - arr_realtime[i]; }
+ for(let i = 0; i <= numblocks; ++i){ arr_graph_nr2ddc[i] = arr_timestamp_nr2ddc[i] - arr_realtime[i]; }
 }
 
 //-- Nr1 (idx), calc graph values, time delta vs real time for each block
@@ -243,23 +286,19 @@ function calcnr1idx()
  for(let i = 0; i <= numblocks; ++i){ arr_graph_nr1idx[i] = arr_timestamp_nr1idx[i] - arr_realtime[i]; }
 }
 
-//-- Nr2 (ddc), calc graph values, time delta vs real time for each block
-function calcnr2ddc()
+//-- None, calc graph values, time delta vs real time for each block
+function calcnone()
 {
- var arr_timestamp_nr2ddc = []; arr_timestamp_nr2ddc[0] = arr_realtime[0];
- var arr_timestamp_nr2ddc_delta = []; arr_timestamp_nr2ddc_delta[0] = blocktime;
+ var arr_timestamp_none = []; arr_timestamp_none[0] = arr_realtime[0];
 
  for(let i = 1; i <= numblocks; ++i){
-   var delta_sec = arr_nodetime[i] - arr_timestamp_nr2ddc[i - 1];
+   var delta_sec = arr_nodetime[i] - arr_timestamp_none[i - 1];
    if(delta_sec > 20) delta_sec = 20;
    if(delta_sec < 5) delta_sec = 5;
-   if(delta_sec < arr_timestamp_nr2ddc_delta[i - 1] - nr2ddlsec) delta_sec = arr_timestamp_nr2ddc_delta[i - 1] - nr2ddlsec;
-   if(delta_sec > arr_timestamp_nr2ddc_delta[i - 1] + nr2ddlsec) delta_sec = arr_timestamp_nr2ddc_delta[i - 1] + nr2ddlsec;
-   arr_timestamp_nr2ddc_delta[i] = delta_sec;
-   arr_timestamp_nr2ddc[i] = arr_timestamp_nr2ddc[i - 1] + delta_sec;
+   arr_timestamp_none[i] = arr_timestamp_none[i - 1] + delta_sec;
    }
 
- for(let i = 0; i <= numblocks; ++i){ arr_graph_nr2ddc[i] = arr_timestamp_nr2ddc[i] - arr_realtime[i]; }
+ for(let i = 0; i <= numblocks; ++i){ arr_graph_none[i] = arr_timestamp_none[i] - arr_realtime[i]; }
 }
 
 //-- create graph object
@@ -284,108 +323,122 @@ function creategraph()
        }
      }
    });
+
+ tsgraph.setDatasetVisibility(0,(gptoggle_nr2ddc) ? true : false);
+ tsgraph.setDatasetVisibility(1,(gptoggle_nr1idx) ? true : false);
+ tsgraph.setDatasetVisibility(2,(gptoggle_none)   ? true : false);
 }
 
-//-- event: switch test case, radio button
-function eventtestcase()
+//-- event: gp02 inrow slider
+function eventgp02slider()
 {
- tcactive = Number(document.querySelector("input[name=testcase]:checked").value);
- if(tcactive < 0) tcactive = 0;
- if(tcactive > 2) tcactive = 2;
+ var inrow = Number(document.getElementById("gp02slider").value);
+ if(inrow !== inrow) inrow = 0;
+ if(inrow < gp02mininrow) inrow = gp02mininrow;
+ if(inrow > gp02maxinrow) inrow = gp02maxinrow;
+ gp02inrow = Math.round(inrow);
+
+ document.getElementById("gp02value").value = gp02inrow;
 
  calcgraph();
- updateurl();
 }
 
-//-- event: tc02 stoptime slider
-function eventtc02slider()
+//-- event: gp02 value input
+function eventgp02value()
 {
- var deltats = Number(document.getElementById("tc02slider").value);
- if(deltats !== deltats) deltats = 0;
- if(deltats < tc02minstop) deltats = tc02minstop;
- if(deltats > tc02maxstop) deltats = tc02maxstop;
- tc02stoptime = Math.round(deltats);
-
- document.getElementById("tc02value").value = tc02stoptime;
-
- if(tcactive == 2) calcgraph();
- updateurl();
-}
-
-//-- event: tc02 value input
-function eventtc02value()
-{
- var deltats = Number(document.getElementById("tc02value").value);
- if(deltats !== deltats) deltats = 0;
- if(deltats < tc02minstop) deltats = tc02minstop;
- if(deltats > tc02maxstop) deltats = tc02maxstop;
- tc02stoptime = Math.round(deltats);
-
- document.getElementById("tc02slider").value = tc02stoptime;
-
- if(tcactive == 2) calcgraph();
- updateurl();
-}
-
-//-- event: tc01 inrow slider
-function eventtc01slider()
-{
- var inrow = Number(document.getElementById("tc01slider").value);
+ var inrow = Number(document.getElementById("gp02value").value);
  if(inrow !== inrow) inrow = 0;
- if(inrow < tc01mininrow) inrow = tc01mininrow;
- if(inrow > tc01maxinrow) inrow = tc01maxinrow;
- tc01inrow = Math.round(inrow);
+ if(inrow < gp02mininrow) inrow = gp02mininrow;
+ if(inrow > gp02maxinrow) inrow = gp02maxinrow;
+ gp02inrow = Math.round(inrow);
 
- document.getElementById("tc01value").value = tc01inrow;
+ document.getElementById("gp02slider").value = gp02inrow;
 
- if(tcactive == 1) calcgraph();
- updateurl();
+ calcgraph();
 }
 
-//-- event: tc01 value input
-function eventtc01value()
+//-- event: gp01 stoptime slider
+function eventgp01slider()
 {
- var inrow = Number(document.getElementById("tc01value").value);
- if(inrow !== inrow) inrow = 0;
- if(inrow < tc01mininrow) inrow = tc01mininrow;
- if(inrow > tc01maxinrow) inrow = tc01maxinrow;
- tc01inrow = Math.round(inrow);
+ var deltats = Number(document.getElementById("gp01slider").value);
+ if(deltats !== deltats) deltats = 0;
+ if(deltats < gp01minstop) deltats = gp01minstop;
+ if(deltats > gp01maxstop) deltats = gp01maxstop;
+ gp01stoptime = Math.round(deltats);
 
- document.getElementById("tc01slider").value = tc01inrow;
+ document.getElementById("gp01value").value = gp01stoptime;
 
- if(tcactive == 1) calcgraph();
- updateurl();
+ calcgraph();
 }
 
-//-- event: Nr2 delta delta limit slider
-function eventnr2ddlslider()
+//-- event: gp01 value input
+function eventgp01value()
 {
- var deltasec = Number(document.getElementById("nr2ddlslider").value);
+ var deltats = Number(document.getElementById("gp01value").value);
+ if(deltats !== deltats) deltats = 0;
+ if(deltats < gp01minstop) deltats = gp01minstop;
+ if(deltats > gp01maxstop) deltats = gp01maxstop;
+ gp01stoptime = Math.round(deltats);
+
+ document.getElementById("gp01slider").value = gp01stoptime;
+
+ calcgraph();
+}
+
+//-- event: Nr2 delta delta limit slider (inc)
+function eventnr2incslider()
+{
+ var deltasec = Number(document.getElementById("nr2incslider").value);
  if(deltasec !== deltasec) deltasec = 1;
  if(deltasec < nr2ddlsecmin) deltasec = nr2ddlsecmin;
  if(deltasec > nr2ddlsecmax) deltasec = nr2ddlsecmax;
- nr2ddlsec = Math.round(deltasec);
+ nr2ddlincsec = Math.round(deltasec);
 
- document.getElementById("nr2ddlvalue").value = nr2ddlsec;
+ document.getElementById("nr2incvalue").value = nr2ddlincsec;
 
  calcgraph();
- updateurl();
 }
 
-//-- event: Nr2 delta delta limit value input
-function eventnr2ddlvalue()
+//-- event: Nr2 delta delta limit value input (inc)
+function eventnr2incvalue()
 {
-
- var deltasec = Number(document.getElementById("nr2ddlvalue").value);
+ var deltasec = Number(document.getElementById("nr2incvalue").value);
  if(deltasec !== deltasec) deltasec = 1;
  if(deltasec < nr2ddlsecmin) deltasec = nr2ddlsecmin;
  if(deltasec > nr2ddlsecmax) deltasec = nr2ddlsecmax;
- nr2ddlsec = Math.round(deltasec);
+ nr2ddlincsec = Math.round(deltasec);
 
- document.getElementById("nr2ddlslider").value = nr2ddlsec;
+ document.getElementById("nr2incslider").value = nr2ddlincsec;
 
  calcgraph();
- updateurl();
+}
+
+//-- event: Nr2 delta delta limit slider (dec)
+function eventnr2decslider()
+{
+ var deltasec = Number(document.getElementById("nr2decslider").value);
+ if(deltasec !== deltasec) deltasec = 1;
+ if(deltasec < nr2ddlsecmin) deltasec = nr2ddlsecmin;
+ if(deltasec > nr2ddlsecmax) deltasec = nr2ddlsecmax;
+ nr2ddldecsec = Math.round(deltasec);
+
+ document.getElementById("nr2decvalue").value = nr2ddldecsec;
+
+ calcgraph();
+}
+
+//-- event: Nr2 delta delta limit value input (dec)
+function eventnr2decvalue()
+{
+ var deltasec = Number(document.getElementById("nr2decvalue").value);
+ if(deltasec !== deltasec) deltasec = 1;
+ if(deltasec < nr2ddlsecmin) deltasec = nr2ddlsecmin;
+ if(deltasec > nr2ddlsecmax) deltasec = nr2ddlsecmax;
+ nr2ddldecsec = Math.round(deltasec);
+
+ document.getElementById("nr2decslider").value = nr2ddldecsec;
+
+ calcgraph();
 }
 
 // <eof>

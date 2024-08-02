@@ -1,5 +1,5 @@
 /*
- * File: style.js
+ * File: style.css
  *
  * Author: voidxno
  * Created: 21 Jul 2024
@@ -145,12 +145,12 @@ input{
   padding-top: 8px;
   }
 
-.tc1slider, .tc2slider, .nr2ddlslider {
+.gp02slider, .gp01slider, .nr2incslider, .nr2decslider {
   width: 150px;
   vertical-align: middle;
   }
 
-.tc1value, .tc2value, .nr2ddlvalue{
+.gp02value, .gp01value, .nr2incvalue, .nr2decvalue{
   width: 45px;
   }
 

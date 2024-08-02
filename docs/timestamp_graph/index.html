@@ -31,13 +31,6 @@
   <h2>Timestamp graph, internal (from: <a href="https://github.com/voidxno/mmx-node-notes">mmx-node-notes</a>)</h2>
     <canvas id="timegraph"></canvas>
 
-  <h2>Test case</h2>
-    <form>
-      <input type="radio" id="case02" name="testcase" value="2"> <label for="case02"><strong>TC02:</strong> Stop chain, height 10</label><br>
-      <input type="radio" id="case01" name="testcase" value="1"> <label for="case01"><strong>TC01:</strong> Wrong TZ/UTC (±1h), height 10</label><br>
-      <input type="radio" id="case00" name="testcase" value="0"> <label for="case00"><strong>TC00:</strong> Normal</label><br>
-    </form>
-
   <h2>Parameters</h2>
     <form>
       <table class="parametertable">
@@ -52,24 +45,31 @@
         </thead>
         <tbody>
           <tr>
-            <td>TC02</d>
-            <td>Stop time</td>
-            <td><input type="range" id="tc02slider" class="tc2slider"></td>
-            <td><input type="text" id="tc02value" class="tc2value"></td>
-            <td>sec</td>
-          </tr>
-          <tr>
-            <td>TC01</d>
-            <td>Blocks wrong in row</td>
-            <td><input type="range" id="tc01slider" class="tc1slider"></td>
-            <td><input type="text" id="tc01value" class="tc1value"></td>
+            <td>&#x1F4C8; Height 10</d>
+            <td>Wrong TZ/UTC (±1h) in row</td>
+            <td><input type="range" id="gp02slider" class="gp02slider"></td>
+            <td><input type="text" id="gp02value" class="gp02value"></td>
             <td>blocks</td>
           </tr>
           <tr>
-            <td>Nr2</d>
-            <td>Delta delta clamp limit</td>
-            <td><input type="range" id="nr2ddlslider" class="nr2ddlslider"></td>
-            <td><input type="text" id="nr2ddlvalue" class="nr2ddlvalue"></td>
+            <td>&#x1F4C8; Height 10</d>
+            <td>Stop chain</td>
+            <td><input type="range" id="gp01slider" class="gp01slider"></td>
+            <td><input type="text" id="gp01value" class="gp01value"></td>
+            <td>sec</td>
+          </tr>
+          <tr>
+            <td><span style="color:#ff6384;">&#9632;</span> Nr2</d>
+            <td>Delta delta clamp limit (inc)</td>
+            <td><input type="range" id="nr2incslider" class="nr2incslider"></td>
+            <td><input type="text" id="nr2incvalue" class="nr2incvalue"></td>
+            <td>sec</td>
+          </tr>
+          <tr>
+            <td><span style="color:#ff6384;">&#9632;</span> Nr2</d>
+            <td>Delta delta clamp limit (dec)</td>
+            <td><input type="range" id="nr2decslider" class="nr2decslider"></td>
+            <td><input type="text" id="nr2decvalue" class="nr2decvalue"></td>
             <td>sec</td>
           </tr>
         </tbody>
@@ -118,8 +118,25 @@
       <pre class="codelogictext">delta_sec = nodetime - prevblock_timestamp
 if(delta_sec &gt; 20) delta_sec = 20
 if(delta_sec &lt; 5) delta_sec = 5
+
+// if: identical up/down delta delta limit
 if(delta_sec &lt; prevblock_delta_sec - deltalimit) delta_sec = prevblock_delta_sec - deltalimit
 if(delta_sec &gt; prevblock_delta_sec + deltalimit) delta_sec = prevblock_delta_sec + deltalimit
+
+// if: diff up/down delta delta limit against 10 sec static blocktime
+if(prev_delta_sec &gt; blocktime){
+  if(delta_sec &gt; prev_delta_sec + deltalimit_inc) delta_sec = prev_delta_sec + deltalimit_inc;
+  if(delta_sec &lt; prev_delta_sec - deltalimit_dec) delta_sec = prev_delta_sec - deltalimit_dec;
+  }
+if(prev_delta_sec &lt; blocktime){
+  if(delta_sec &lt; prev_delta_sec - deltalimit_inc) delta_sec = prev_delta_sec - deltalimit_inc;
+  if(delta_sec &gt; prev_delta_sec + deltalimit_dec) delta_sec = prev_delta_sec + deltalimit_dec;
+  }
+if(prev_delta_sec == blocktime){
+  if(delta_sec &lt; prev_delta_sec - deltalimit_inc) delta_sec = prev_delta_sec - deltalimit_inc;
+  if(delta_sec &gt; prev_delta_sec + deltalimit_inc) delta_sec = prev_delta_sec + deltalimit_inc;
+  }
+
 block_timestamp = prevblock_timestamp + delta_sec
 block_delta_sec = delta_sec</pre>
 
